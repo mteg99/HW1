@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 from scipy import stats
 
 # Distribution parameters
@@ -45,10 +46,14 @@ for i in range(N):
     if true_labels[i] == 1:
         colors.append('red')
     elif true_labels[i] == 2:
-        colors.append('blue')
-    elif true_labels[i] == 3:
         colors.append('green')
+    elif true_labels[i] == 3:
+        colors.append('blue')
 ax.scatter(X[0], X[1], X[2], color=colors)
+plt.title('True Class Labels')
+plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='r', markersize=10),
+                    Line2D([0], [0], marker='o', color='w', label='Class 2', markerfacecolor='g', markersize=10),
+                    Line2D([0], [0], marker='o', color='w', label='Class 3', markerfacecolor='b', markersize=10)])
 plt.show()
 
 # Calculate posteriors
@@ -59,59 +64,97 @@ px = pxg1 + pxg2 + pxg3
 posteriors = np.array([np.divide(pxg1, px), np.divide(pxg2, px), np.divide(pxg3, px)])
 
 # MAP classifications
-class_labels = np.array([np.argmax([posteriors[0][i], posteriors[1][i], posteriors[2][i]]) + 1 for i in range(N)])
+D = np.array([np.argmax([posteriors[0][i], posteriors[1][i], posteriors[2][i]]) + 1 for i in range(N)])
+D1 = D[[i == 1 for i in true_labels]]
+D2 = D[[i == 2 for i in true_labels]]
+D3 = D[[i == 3 for i in true_labels]]
+confusion_matrix = np.zeros(shape=(3, 3))
+for d in range(3):
+    for l in range(3):
+        decision_count = np.count_nonzero([D1, D2, D3][l] == d + 1)
+        label_count = len(D)
+        confusion_matrix[d][l] = decision_count / label_count
+print('MAP Confusion Matrix:')
+print(confusion_matrix)
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 L1 = X[:, [i == 1 for i in true_labels]]
 L2 = X[:, [i == 2 for i in true_labels]]
 L3 = X[:, [i == 3 for i in true_labels]]
-class_labels1 = class_labels[[i == 1 for i in true_labels]]
-class_labels2 = class_labels[[i == 2 for i in true_labels]]
-class_labels3 = class_labels[[i == 3 for i in true_labels]]
-colors1 = ['green' if class_labels1[i] == 1 else 'red' for i in range(len(class_labels1))]
-colors2 = ['green' if class_labels2[i] == 2 else 'red' for i in range(len(class_labels2))]
-colors3 = ['green' if class_labels3[i] == 3 else 'red' for i in range(len(class_labels3))]
+colors1 = ['green' if D1[i] == 1 else 'red' for i in range(len(D1))]
+colors2 = ['green' if D2[i] == 2 else 'red' for i in range(len(D2))]
+colors3 = ['green' if D3[i] == 3 else 'red' for i in range(len(D3))]
 ax.scatter(L1[0], L1[1], L1[2], marker='o', color=colors1)
 ax.scatter(L2[0], L2[1], L2[2], marker='s', color=colors2)
 ax.scatter(L3[0], L3[1], L3[2], marker='^', color=colors3)
+plt.title('MAP Classifications')
+plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='s', color='w', label='Class 2', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='^', color='w', label='Class 3', markerfacecolor='black', markersize=10)])
 plt.show()
 
 # ERM classifications (cares 10 times more about L3)
 loss_matrix = np.array([[0, 1, 10], [1, 0, 10], [1, 1, 0]])
 risk_matrix = np.matmul(loss_matrix, posteriors)
-class_labels = np.array([np.argmin([risk_matrix[0][i], risk_matrix[1][i], risk_matrix[2][i]]) + 1 for i in range(N)])
+D = np.array([np.argmin([risk_matrix[0][i], risk_matrix[1][i], risk_matrix[2][i]]) + 1 for i in range(N)])
+D1 = D[[i == 1 for i in true_labels]]
+D2 = D[[i == 2 for i in true_labels]]
+D3 = D[[i == 3 for i in true_labels]]
+confusion_matrix = np.zeros(shape=(3, 3))
+for d in range(3):
+    for l in range(3):
+        D = [D1, D2, D3][l]
+        decision_count = np.count_nonzero(D == d + 1)
+        label_count = len(D)
+        confusion_matrix[d][l] = decision_count / label_count
+print('ERM 10 Confusion Matrix:')
+print(confusion_matrix)
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 L1 = X[:, [i == 1 for i in true_labels]]
 L2 = X[:, [i == 2 for i in true_labels]]
 L3 = X[:, [i == 3 for i in true_labels]]
-class_labels1 = class_labels[[i == 1 for i in true_labels]]
-class_labels2 = class_labels[[i == 2 for i in true_labels]]
-class_labels3 = class_labels[[i == 3 for i in true_labels]]
-colors1 = ['green' if class_labels1[i] == 1 else 'red' for i in range(len(class_labels1))]
-colors2 = ['green' if class_labels2[i] == 2 else 'red' for i in range(len(class_labels2))]
-colors3 = ['green' if class_labels3[i] == 3 else 'red' for i in range(len(class_labels3))]
+colors1 = ['green' if D1[i] == 1 else 'red' for i in range(len(D1))]
+colors2 = ['green' if D2[i] == 2 else 'red' for i in range(len(D2))]
+colors3 = ['green' if D3[i] == 3 else 'red' for i in range(len(D3))]
 ax.scatter(L1[0], L1[1], L1[2], marker='o', color=colors1)
 ax.scatter(L2[0], L2[1], L2[2], marker='s', color=colors2)
 ax.scatter(L3[0], L3[1], L3[2], marker='^', color=colors3)
+plt.title('ERM 10 Classifications')
+plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='s', color='w', label='Class 2', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='^', color='w', label='Class 3', markerfacecolor='black', markersize=10)])
 plt.show()
 
 # ERM classifications (cares 10 times more about L3)
 loss_matrix = np.array([[0, 1, 100], [1, 0, 100], [1, 1, 0]])
 risk_matrix = np.matmul(loss_matrix, posteriors)
-class_labels = np.array([np.argmin([risk_matrix[0][i], risk_matrix[1][i], risk_matrix[2][i]]) + 1 for i in range(N)])
+D = np.array([np.argmin([risk_matrix[0][i], risk_matrix[1][i], risk_matrix[2][i]]) + 1 for i in range(N)])
+D1 = D[[i == 1 for i in true_labels]]
+D2 = D[[i == 2 for i in true_labels]]
+D3 = D[[i == 3 for i in true_labels]]
+confusion_matrix = np.zeros(shape=(3, 3))
+for d in range(3):
+    for l in range(3):
+        D = [D1, D2, D3][l]
+        decision_count = np.count_nonzero(D == d + 1)
+        label_count = len(D)
+        confusion_matrix[d][l] = decision_count / label_count
+print('ERM 100 Confusion Matrix:')
+print(confusion_matrix)
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 L1 = X[:, [i == 1 for i in true_labels]]
 L2 = X[:, [i == 2 for i in true_labels]]
 L3 = X[:, [i == 3 for i in true_labels]]
-class_labels1 = class_labels[[i == 1 for i in true_labels]]
-class_labels2 = class_labels[[i == 2 for i in true_labels]]
-class_labels3 = class_labels[[i == 3 for i in true_labels]]
-colors1 = ['green' if class_labels1[i] == 1 else 'red' for i in range(len(class_labels1))]
-colors2 = ['green' if class_labels2[i] == 2 else 'red' for i in range(len(class_labels2))]
-colors3 = ['green' if class_labels3[i] == 3 else 'red' for i in range(len(class_labels3))]
+colors1 = ['green' if D1[i] == 1 else 'red' for i in range(len(D1))]
+colors2 = ['green' if D2[i] == 2 else 'red' for i in range(len(D2))]
+colors3 = ['green' if D3[i] == 3 else 'red' for i in range(len(D3))]
 ax.scatter(L1[0], L1[1], L1[2], marker='o', color=colors1)
 ax.scatter(L2[0], L2[1], L2[2], marker='s', color=colors2)
 ax.scatter(L3[0], L3[1], L3[2], marker='^', color=colors3)
+plt.title('ERM 100 Classifications')
+plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='s', color='w', label='Class 2', markerfacecolor='black', markersize=10),
+                    Line2D([0], [0], marker='^', color='w', label='Class 3', markerfacecolor='black', markersize=10)])
 plt.show()

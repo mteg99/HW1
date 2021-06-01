@@ -28,7 +28,7 @@ for i in range(N):
 
 # Plot samples
 plt.scatter(X[0], X[1], color=['blue' if i == 0 else 'red' for i in true_labels])
-plt.title('Question 1 True Class Labels')
+plt.title('True Class Labels')
 plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Class 0', markerfacecolor='b', markersize=10),
                     Line2D([0], [0], marker='o', color='w', label='Class 1', markerfacecolor='r', markersize=10)])
 plt.show()
@@ -83,6 +83,7 @@ for i in range(100):
 plt.plot(FPR, TPR, color='blue')
 i = np.argmin(p_error)
 plt.scatter(FPR[i], TPR[i], color='green')
+plt.title('LDA ROC Curve')
 plt.legend(handles=[Line2D([0], [0], marker='o', color='w', label='Optimal Tau', markerfacecolor='g', markersize=10)])
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
